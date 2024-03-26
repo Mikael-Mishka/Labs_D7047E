@@ -17,15 +17,27 @@ class CNN(nn.Module):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         conv_layers = nn.Sequential(
-            nn.Conv2d(3, 16, 5, (1, 1), 1, device=self.device),
-            nn.LeakyReLU(),
-            nn.MaxPool2d(5, 1),
-            nn.BatchNorm2d(16),
-            nn.Conv2d(16, 32, 5, (1, 1), 1, device=self.device),
+            nn.Conv2d(3, 32, 5, (1, 1), padding=1, device=self.device),
             nn.LeakyReLU(),
             nn.MaxPool2d(5, 1),
             nn.BatchNorm2d(32),
-            nn.Conv2d(32, 3, 3, (1, 1), 1, device=self.device),
+            nn.Conv2d(32, 64, 5, (1, 1), padding=1, device=self.device),
+            nn.LeakyReLU(),
+            nn.MaxPool2d(5, 1),
+            nn.BatchNorm2d(64),
+            nn.Conv2d(64, 64, 3, (1, 1), padding=1, device=self.device),
+            nn.LeakyReLU(),
+            nn.MaxPool2d(5, 1),
+            nn.BatchNorm2d(64),
+            nn.Conv2d(64, 32, 3, (1, 1), padding=1, device=self.device),
+            nn.LeakyReLU(),
+            nn.MaxPool2d(5, 1),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 16, 3, (1, 1), padding=1, device=self.device),
+            nn.LeakyReLU(),
+            nn.MaxPool2d(5, 1),
+            nn.BatchNorm2d(16),
+            nn.Conv2d(16, 3, 3, (1, 1), padding=1, device=self.device),
             nn.LeakyReLU(),
         )
 
@@ -43,7 +55,7 @@ class CNN(nn.Module):
             conv_layers,
             Flatten(),
             nn.Linear(num_features, 200),
-            nn.Tanh(),
+            nn.LeakyReLU(),
             nn.Dropout(0.2),
             nn.Linear(200, 200),
             nn.LeakyReLU(),
@@ -61,11 +73,10 @@ class CNN(nn.Module):
         # Here is the metrics we will be tracking
         best_accuracy = 0
         best_epoch = 0
-        current_accuracy = 0
-        current_train_loss = 0
-        current_validation_loss = 0
 
         last_print = time.time()
+
+        validation_accuracies = []
 
         # Here is the main training loop
         for epoch in range(num_epochs):
@@ -77,6 +88,7 @@ class CNN(nn.Module):
 
             # Sets us in training mode
             self.train()
+
             # Training loop
             for i, (images, labels) in enumerate(train_loader):
                 optimizer.zero_grad()
@@ -121,21 +133,40 @@ class CNN(nn.Module):
                     _, predicted = torch.max(outputs, 1)
                     correct = (predicted == labels).sum().item()
                     total = labels.size(0)
-                    current_accuracy += correct / total
+                    validation_accuracies.append(correct / total)
 
             # Calculate the average loss and accuracy
             current_train_loss /= len(train_loader)
             current_validation_loss /= len(validation_loader)
-            current_accuracy /= len(validation_loader)
+            current_accuracy = sum(validation_accuracies)/len(validation_accuracies)*100
 
             if time.time() - last_print > 15:
                 last_print = time.time()
                 # Print the results
                 print(
-                    f"Epoch: {epoch}/{num_epochs}, Train Loss: {current_train_loss}, Validation Loss: {current_validation_loss}, Accuracy: {current_accuracy}")
+                    f"Epoch: {epoch}/{num_epochs}, Train Loss: {current_train_loss}, Validation Loss: {current_validation_loss}, Accuracy: {current_accuracy} %")
 
             # Check if we have a new best accuracy
             if current_accuracy > best_accuracy:
+                torch.save(self, "best_model.pth")
                 best_accuracy = current_accuracy
                 best_epoch = epoch
         print(f"Best epoch: {best_epoch}\tBest accuracy: {best_accuracy}")
+        return best_accuracy, best_epoch
+
+
+    def test_model(self, test_loader):
+        best_model = torch.load("best_model.pth")
+        self.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for images, labels in test_loader:
+                images = images.to(self.device)
+                labels = labels.to(self.device)
+                outputs = best_model(images)
+                _, predicted = torch.max(outputs, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
+        return correct / total*100
