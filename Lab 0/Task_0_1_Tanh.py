@@ -18,27 +18,27 @@ class CNN(nn.Module):
 
         conv_layers = nn.Sequential(
             nn.Conv2d(3, 32, 5, (1, 1), padding=1, device=self.device),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.MaxPool2d(5, 1),
             nn.BatchNorm2d(32),
             nn.Conv2d(32, 64, 5, (1, 1), padding=1, device=self.device),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.MaxPool2d(5, 1),
             nn.BatchNorm2d(64),
             nn.Conv2d(64, 64, 3, (1, 1), padding=1, device=self.device),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.MaxPool2d(5, 1),
             nn.BatchNorm2d(64),
             nn.Conv2d(64, 32, 3, (1, 1), padding=1, device=self.device),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.MaxPool2d(5, 1),
             nn.BatchNorm2d(32),
             nn.Conv2d(32, 16, 3, (1, 1), padding=1, device=self.device),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.MaxPool2d(5, 1),
             nn.BatchNorm2d(16),
             nn.Conv2d(16, 3, 3, (1, 1), padding=1, device=self.device),
-            nn.LeakyReLU(),
+            nn.Tanh(),
         )
 
         conv_layers.to(self.device)
@@ -55,10 +55,10 @@ class CNN(nn.Module):
             conv_layers,
             Flatten(),
             nn.Linear(num_features, 200),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.Dropout(0.2),
             nn.Linear(200, 200),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.Dropout(0.2),
             nn.Linear(200, 10),
         )
@@ -77,6 +77,8 @@ class CNN(nn.Module):
         last_print = time.time()
 
         validation_accuracies = []
+        validation_losses = []
+        train_losses = []
 
         # Here is the main training loop
         for epoch in range(num_epochs):
@@ -107,12 +109,6 @@ class CNN(nn.Module):
                 # Track the loss
                 current_train_loss += loss.item()
 
-                # Track the accuracy
-                _, predicted = torch.max(outputs, 1)
-                correct = (predicted == labels).sum().item()
-                total = labels.size(0)
-                current_accuracy += correct / total
-
             # Sets us in evaluation mode
             self.eval()
 
@@ -133,12 +129,17 @@ class CNN(nn.Module):
                     _, predicted = torch.max(outputs, 1)
                     correct = (predicted == labels).sum().item()
                     total = labels.size(0)
-                    validation_accuracies.append(correct / total)
+                    current_accuracy += (correct / total)
 
             # Calculate the average loss and accuracy
             current_train_loss /= len(train_loader)
             current_validation_loss /= len(validation_loader)
-            current_accuracy = sum(validation_accuracies)/len(validation_accuracies)*100
+            current_accuracy = current_accuracy/len(validation_loader)*100
+
+            # Append the results
+            train_losses.append(current_train_loss)
+            validation_losses.append(current_validation_loss)
+            validation_accuracies.append(current_accuracy)
 
             if time.time() - last_print > 15:
                 last_print = time.time()
@@ -152,7 +153,7 @@ class CNN(nn.Module):
                 best_accuracy = current_accuracy
                 best_epoch = epoch
         print(f"Best epoch: {best_epoch}\tBest accuracy: {best_accuracy}")
-        return best_accuracy, best_epoch
+        return best_accuracy, best_epoch, train_losses, validation_losses, validation_accuracies
 
 
     def test_model(self, test_loader):
