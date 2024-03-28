@@ -136,7 +136,7 @@ def Task_0_2():
     from Task_0_2 import Task_0_2_1, Task_0_2_2
 
     # Task 0.2.1
-    Task_0_2_1()
+    #Task_0_2_1()
 
     # Task 0.2.2
     Task_0_2_2()
