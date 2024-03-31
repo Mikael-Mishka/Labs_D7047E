@@ -1,0 +1,232 @@
+
+-----------------------------------------------------------
+0.1 Task
+The following steps will guide you in creating your own experiment.
+    • Download and prepare CIFAR-10 dataset (it is already available in the above mentioned libraries)
+        – PyTorch
+        – Keras and Tensorflow
+-----------------------------------------------------------
+
+Files already downloaded and verified
+Files already downloaded and verified
+
+-----------------------------------------------------------
+0.1 Task
+    • Write a simple CNN network for classifying images
+        – use LeakyReLU as the activation function (optional)
+        – use SGD as the optimizer and 0.0001 as the learning rate, and keep all default parameters (optional)
+        – Report the accuracy on the test set (optional)
+    • Change the optimiser to Adam and run again the experiment. Report accuracy on test set.
+-----------------------------------------------------------
+
+
+SOLUTION:
+
+
+----- Task 0.1 (TRAINING)- Training SGD optimizer and ReLU activation function -----
+
+Best epoch: 0	Best accuracy: 10.245253164556962
+
+----- Task 0.1 (RESULTS)- Using SGD optimizer and ReLU activation function -----
+Best validation accuracy: 10.245253164556962 at epoch 0 - Best model test set accuracy: 9.62
+
+
+----- Task 0.1 (TRAINING)- Training ADAM optimizer and ReLU activation function -----
+
+Best epoch: 0	Best accuracy: 41.396360759493675
+
+----- Task 0.1 (RESULTS)- Using ADAM optimizer and ReLU activation function -----
+Best validation accuracy: 41.396360759493675 at epoch 0 - Best model test set accuracy: 42.74
+
+
+-----------------------------------------------------------
+0.1 Task
+    • Swap the LeakyReLUs for Tanh. Then run again the experiment and report accuracy on
+      test set. Make a separate file for this experiment.
+-----------------------------------------------------------
+
+
+----- Task 0.1 (TRAINING)- Training SGD optimizer and Tanh activation function -----
+
+Best epoch: 0	Best accuracy: 13.212025316455698
+
+----- Task 0.1 (RESULTS)- Using SGD optimizer and Tanh activation function -----
+Best validation accuracy using SGD: 13.212025316455698 at epoch 0 - Best model test set accuracy: 13.120000000000001
+
+
+----- Task 0.1 (TRAINING)- Training ADAM optimizer and Tanh activation function -----
+Best epoch: 0	Best accuracy: 45.3125
+
+----- Task 0.1 (RESULTS)- Using ADAM optimizer and Tanh activation function -----
+Best validation accuracy using ADAM: 45.3125 at epoch 0 - Best model test set accuracy: 45.6
+
+-----------------------------------------------------------
+Task 0.1 (DONE)
+-----------------------------------------------------------
+
+
+
+-----------------------------------------------------------
+0.2.1 Transfer Learning from ImageNet
+    • Download and prepare CIFAR-10 dataset (it is already available in the above mentioned libraries)
+-----------------------------------------------------------
+
+Files already downloaded and verified
+Files already downloaded and verified
+
+-----------------------------------------------------------
+0.2.1 Transfer Learning from ImageNet
+    • Use AlexNet as the model (Pytorch AlexNet)
+-----------------------------------------------------------
+
+Using cache found in /home/convergent/.cache/torch/hub/pytorch_vision_v0.6.0
+/home/convergent/anaconda3/envs/D7047E/lib/python3.12/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/convergent/anaconda3/envs/D7047E/lib/python3.12/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=AlexNet_Weights.IMAGENET1K_V1`. You can also use `weights=AlexNet_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+AlexNet correctly loaded from PyTorch Hub
+
+Usage = 'fine tuning'
+
+-----------------------------------------------------------
+0.2.1 Transfer Learning from ImageNet
+    • You have to perform two separate experiments-
+        – Train the model for CIFAR-10 data, Report the test test accuracy. (also referred as fine tuning the model)
+        – Use the pretarined weights of AlexNet, in other words use AlexNet as a pretrained network for image
+          classification on CIFAR-10 data (also referred as Feature Extraction), Report the test test accuracy. (optional)
+-----------------------------------------------------------
+
+
+----- Task 0.2.1 (TRAINING) AlexNet Fine Tuning on CIFAR-10 for 1 epoch -----
+
+Epoch: 0 - Train loss: 0.675966688205519 - Validation loss: 0.43074327660135076 - Validation accuracy: 84.61999999999999
+Using cache found in /home/convergent/.cache/torch/hub/pytorch_vision_v0.6.0
+
+----- Task 0.2.1 (RESULTS) AlexNet fine tuned on CIFAR-10 for 1 -----
+
+Test accuracy: 85.1
+
+----- Task 0.2.1 (Define) AlexNet on CIFAR-10 for Feature extraction -----
+
+--- Task 0.2.1 (TRAINING) AlexNet Feature Extraction on CIFAR-10 (layers frozen except last)---
+
+Epoch: 0 - Train loss: 1.434056827860415 - Validation loss: 1.1668334859835952 - Validation accuracy: 61.6
+Epoch: 1 - Train loss: 1.1877951504629287 - Validation loss: 1.0663293441639672 - Validation accuracy: 64.03999999999999
+Epoch: 2 - Train loss: 1.1323893599193116 - Validation loss: 1.0150699562664274 - Validation accuracy: 65.8
+Epoch: 3 - Train loss: 1.0992716849612458 - Validation loss: 0.9866896709309348 - Validation accuracy: 66.5
+Epoch: 4 - Train loss: 1.0826932886982208 - Validation loss: 0.9687881594217276 - Validation accuracy: 66.67999999999999
+
+--- Task 0.2.1 (RESULTS) AlexNet feature extraction on CIFAR-10 - Test accuracy: 66.94 %
+
+
+-----------------------------------------------------------
+0.2.1 Transfer Learning from ImageNet (DONE)
+-----------------------------------------------------------
+
+
+-----------------------------------------------------------
+0.2.2 Transfer Learning from MNIST
+    • Prepare a CNN of your choice and train it on the MNIST data. Report the accuracy
+-----------------------------------------------------------
+
+=================================================================
+Layer (type:depth-idx)                   Param #
+=================================================================
+CNN                                      --
+├─Sequential: 1-1                        --
+│    └─Conv2d: 2-1                       832
+│    └─Tanh: 2-2                         --
+│    └─MaxPool2d: 2-3                    --
+│    └─BatchNorm2d: 2-4                  64
+│    └─Conv2d: 2-5                       51,264
+│    └─Tanh: 2-6                         --
+│    └─MaxPool2d: 2-7                    --
+│    └─BatchNorm2d: 2-8                  128
+│    └─Conv2d: 2-9                       36,928
+│    └─Tanh: 2-10                        --
+│    └─MaxPool2d: 2-11                   --
+│    └─BatchNorm2d: 2-12                 128
+│    └─Conv2d: 2-13                      18,464
+│    └─Tanh: 2-14                        --
+│    └─MaxPool2d: 2-15                   --
+│    └─BatchNorm2d: 2-16                 64
+│    └─Conv2d: 2-17                      4,624
+│    └─Tanh: 2-18                        --
+│    └─MaxPool2d: 2-19                   --
+│    └─BatchNorm2d: 2-20                 32
+│    └─Conv2d: 2-21                      145
+│    └─Tanh: 2-22                        --
+├─Sequential: 1-2                        112,673
+│    └─Sequential: 2-23                  (recursive)
+│    │    └─Conv2d: 3-1                  (recursive)
+│    │    └─Tanh: 3-2                    --
+│    │    └─MaxPool2d: 3-3               --
+│    │    └─BatchNorm2d: 3-4             (recursive)
+│    │    └─Conv2d: 3-5                  (recursive)
+│    │    └─Tanh: 3-6                    --
+│    │    └─MaxPool2d: 3-7               --
+│    │    └─BatchNorm2d: 3-8             (recursive)
+│    │    └─Conv2d: 3-9                  (recursive)
+│    │    └─Tanh: 3-10                   --
+│    │    └─MaxPool2d: 3-11              --
+│    │    └─BatchNorm2d: 3-12            (recursive)
+│    │    └─Conv2d: 3-13                 (recursive)
+│    │    └─Tanh: 3-14                   --
+│    │    └─MaxPool2d: 3-15              --
+│    │    └─BatchNorm2d: 3-16            (recursive)
+│    │    └─Conv2d: 3-17                 (recursive)
+│    │    └─Tanh: 3-18                   --
+│    │    └─MaxPool2d: 3-19              --
+│    │    └─BatchNorm2d: 3-20            (recursive)
+│    │    └─Conv2d: 3-21                 (recursive)
+│    │    └─Tanh: 3-22                   --
+│    └─Flatten: 2-24                     --
+│    └─Linear: 2-25                      3,400
+│    └─Tanh: 2-26                        --
+│    └─Dropout: 2-27                     --
+│    └─Linear: 2-28                      40,200
+│    └─Tanh: 2-29                        --
+│    └─Dropout: 2-30                     --
+│    └─Linear: 2-31                      2,010
+=================================================================
+Total params: 270,956
+Trainable params: 270,956
+Non-trainable params: 0
+=================================================================
+
+--- Task 0.2.2 (TRAINING) CNN on MNIST for 3 epochs ---
+
+Epoch: 0 - Train loss: 0.5694486222454289 - Validation loss: 0.11205831926929045 - Validation accuracy: 96.88
+Epoch: 1 - Train loss: 0.09618799622132898 - Validation loss: 0.063168518044809 - Validation accuracy: 98.26
+Epoch: 2 - Train loss: 0.06509174707421124 - Validation loss: 0.05720726764890589 - Validation accuracy: 98.42
+
+--- Task 0.2.2 (RESULTS) CNN trained on MNIST for 3 epochs ---
+
+Training on MNIST gives us the best accuracy of: 98.42
+Lowest train loss: 0.06509174707421124
+Lowest validation loss: 0.05720726764890589
+
+
+-----------------------------------------------------------
+Task 0.2.2 Transfer Learning from MNIST
+    • Use the above model as a pre-trained CNN for the SVHN dataset. Report the accuracy
+    • In the third step you are performing transfer learning from MNIST to SVHN (optional).
+-----------------------------------------------------------
+
+Preparing SVHN dataset...
+Using downloaded and verified file: ./data/train_32x32.mat
+Using downloaded and verified file: ./data/test_32x32.mat
+
+Transfer model trained on MNIST tested on SVHN (No fine tuneing) - Test accuracy: 10.16441303011678 %
+
+
+--- Task 0.2.2 (TRAINING) CNN on SVHN for 3 epochs ---
+
+Epoch: 0/3, Train Loss: 1.165705986730917, Validation Loss: 0.792855017617637, Accuracy: 75.42126225490196 %
+Epoch: 1/3, Train Loss: 0.6811396103498717, Validation Loss: 0.6001495402671543, Accuracy: 81.53339460784314 %
+Epoch: 2/3, Train Loss: 0.5585273503476356, Validation Loss: 0.5546214879289562, Accuracy: 83.54268790849673 %
+Best epoch: 2	Best accuracy: 83.54268790849673
+
+--- Task 0.2.2 (RESULTS) CNN trained on SVHN for 3 epochs ---
+
+Transfer model trained on SVHN - Test accuracy: 82.94406883835279 %

@@ -124,13 +124,20 @@ def Task_0_2_1():
     # Hyperparameters
     batch_size = 64
     learning_rate = 1e-4
-    num_epochs = 1
+    num_epochs = 5
 
     # Define transforms to resize images to 224x224 (AlexNet input size)
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
+
+    print("""
+-----------------------------------------------------------
+0.2.1 Transfer Learning from ImageNet
+    • Download and prepare CIFAR-10 dataset (it is already available in the above mentioned libraries)
+-----------------------------------------------------------
+    """)
 
     # Download and prepare the CIFAR-10 dataset
     train_data = CIFAR10(root='./data', train=True, download=True, transform=transform)
@@ -149,21 +156,47 @@ def Task_0_2_1():
     # Gets cuda if available
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    print("""
+-----------------------------------------------------------
+0.2.1 Transfer Learning from ImageNet
+    • Use AlexNet as the model (Pytorch AlexNet)
+-----------------------------------------------------------
+    """)
+
     # Define the model (AlexNet)
     model = torch.hub.load('pytorch/vision:v0.6.0', 'alexnet', pretrained=True)
     model.to(device)
 
+    print(f"AlexNet correctly loaded from PyTorch Hub\n",
+          f"Usage = 'fine tuning'", sep="\n")
+
     # Change the last layer to fit CIFAR-10
     model.classifier[6] = torch.nn.Linear(4096, 10)
 
+    print("""
+-----------------------------------------------------------
+0.2.1 Transfer Learning from ImageNet
+    • You have to perform two separate experiments-
+        – Train the model for CIFAR-10 data, Report the test test accuracy. (also referred as fine tuning the model)
+        – Use the pretarined weights of AlexNet, in other words use AlexNet as a pretrained network for image
+          classification on CIFAR-10 data (also referred as Feature Extraction), Report the test test accuracy. (optional)
+-----------------------------------------------------------
+    """)
+
+    alexNet_fine_tuning_epochs = 1
+
+    print(f"\n----- Task 0.2.1 (TRAINING) AlexNet Fine Tuning on CIFAR-10 for 1 epoch -----\n")
     train_model(model, train_loader, val_loader, torch.nn.CrossEntropyLoss(),
-                torch.optim.Adam(model.parameters(), lr=learning_rate), num_epochs, device)
+                torch.optim.Adam(model.parameters(), lr=learning_rate), alexNet_fine_tuning_epochs, device)
 
     test_accuracy = test_model(model, test_loader)
 
-    print(f"AlexNet trained on CIFAR-10 - Test accuracy: {test_accuracy} %")
+    print(f"\n----- Task 0.2.1 (RESULTS) AlexNet fine tuned on CIFAR-10 for {alexNet_fine_tuning_epochs} -----\n",
+          f"Test accuracy: {test_accuracy}",sep="\n")
 
     # Alexnet feauture extraction
+
+    print(f"\n----- Task 0.2.1 (Define) AlexNet on CIFAR-10 for Feature extraction -----\n", sep="\n")
 
     # define the model
     fx_model = torch.hub.load('pytorch/vision:v0.6.0', 'alexnet', pretrained=True)
@@ -175,13 +208,16 @@ def Task_0_2_1():
 
     fx_model.classifier[6] = torch.nn.Linear(4096, 10)
 
+    print(f"--- Task 0.2.1 (TRAINING) AlexNet Feature Extraction on CIFAR-10 (layers frozen except last)---\n", sep="\n")
+
     # Train last layer
     train_model(fx_model, train_loader, val_loader, torch.nn.CrossEntropyLoss(),
                 torch.optim.Adam(fx_model.parameters(), lr=learning_rate), num_epochs, device)
 
+
     test_accuracy = test_model(fx_model, test_loader)
 
-    print(f"AlexNet feature extraction on CIFAR-10 - Test accuracy: {test_accuracy} %")
+    print(f"\n--- Task 0.2.1 (RESULTS) AlexNet feature extraction on CIFAR-10 - Test accuracy: {test_accuracy} %\n")
 
 def train_model(self, train_loader, validation_loader, loss_fn, optimizer, num_epochs, device):
 
@@ -440,11 +476,18 @@ class CNN(nn.Module):
 def Task_0_2_2():
     # Transfer learning from MNIST
 
+    print("""
+-----------------------------------------------------------
+0.2.2 Transfer Learning from MNIST
+    • Prepare a CNN of your choice and train it on the MNIST data. Report the accuracy
+-----------------------------------------------------------
+    """)
+
 
     # Hyperparameters
     batch_size = 64
     learning_rate = 1e-4
-    num_epochs = 10
+    num_epochs = 3
 
     # Prepare the MNIST dataset
     transform = ToTensor()
@@ -469,18 +512,35 @@ def Task_0_2_2():
     # Define the model
     transfer_model = CNN()
 
+    from torchinfo import summary
+
+    summary(transfer_model)
+
+    print(f"\n--- Task 0.2.2 (TRAINING) CNN on MNIST for {num_epochs} epochs ---\n")
+
     # We use our own CNN model
     _, _, train_losses, validation_losses, validation_accuracies = train_model(transfer_model, train_loader, val_loader, torch.nn.CrossEntropyLoss(), torch.optim.Adam(transfer_model.parameters(), lr=learning_rate), num_epochs, device)
 
-    print(f"Training on MNIST gives us the best accuracy of: {max(validation_accuracies)}",
+    print(f"\n--- Task 0.2.2 (RESULTS) CNN trained on MNIST for {num_epochs} epochs ---\n",
+          f"Training on MNIST gives us the best accuracy of: {max(validation_accuracies)}",
           f"Lowest train loss: {min(train_losses)}",
-          f"Lowest validation loss: {min(validation_losses)}",
+          f"Lowest validation loss: {min(validation_losses)}\n",
           sep="\n")
 
     # Use the transfer model as a pretrained model on SVHN
 
     # Import SVHN
     from torchvision.datasets import SVHN
+
+    print("""
+-----------------------------------------------------------
+Task 0.2.2 Transfer Learning from MNIST
+    • Use the above model as a pre-trained CNN for the SVHN dataset. Report the accuracy
+    • In the third step you are performing transfer learning from MNIST to SVHN (optional).
+-----------------------------------------------------------
+    """)
+
+    print("Preparing SVHN dataset...")
 
     # Prepare SVHN dataset
     transform = ToTensor()
@@ -502,7 +562,7 @@ def Task_0_2_2():
     # Test the model on SVHN
     test_accuracy = transfer_model.test_model(test_loader)
 
-    print(f"Transfer model trained on MNIST tested on SVHN - Test accuracy: {test_accuracy} %")
+    print(f"\nTransfer model trained on MNIST tested on SVHN (No fine tuneing) - Test accuracy: {test_accuracy} %\n")
 
     # Changes the first convolution layer such that it accepts 3 channels instead of 1
     transfer_model.conv_layers[0] = nn.Conv2d(3, 32, 5, (1, 1), padding=1).to(device)
@@ -515,9 +575,13 @@ def Task_0_2_2():
     # Changes the first linear layer to fit SVHN
     transfer_model.internal_model[2] = nn.Linear(num_features, 200)
 
+    print(f"\n--- Task 0.2.2 (TRAINING) CNN on SVHN for {num_epochs} epochs ---\n")
+
     # Train the model on SVHN
     _, _, train_losses, validation_losses, validation_accuracies = transfer_model.train_model(train_loader, val_loader, torch.nn.CrossEntropyLoss(), torch.optim.Adam(transfer_model.parameters(), lr=learning_rate), num_epochs)
 
+
+    print(f"\n--- Task 0.2.2 (RESULTS) CNN trained on SVHN for {num_epochs} epochs ---\n",sep="\n")
     # Test the model on SVHN
     test_accuracy = transfer_model.test_model(test_loader)
 
