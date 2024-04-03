@@ -13,8 +13,8 @@ nltk.download('stopwords')
 def preprocess_pandas(data, columns):
     df_ = pd.DataFrame(columns=columns)
     data['Sentence'] = data['Sentence'].str.lower()
-    data['Sentence'] = data['Sentence'].str.replace('[a-zA-Z0-9-_.]+@[a-zA-Z0-9-_.]+', '', regex=True)                      # remove emails
-    data['Sentence'] = data['Sentence'].str.replace('((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}', '', regex=True)    # remove IP address
+    data['Sentence'] = data['Sentence'].str.replace(r'[a-zA-Z0-9-_.]+@[a-zA-Z0-9-_.]+', '', regex=True)                      # remove emails
+    data['Sentence'] = data['Sentence'].str.replace(r'((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}', '', regex=True)    # remove IP address
     data['Sentence'] = data['Sentence'].str.replace(r'[^\w\s]','')                                                       # remove special characters
     data['Sentence'] = data['Sentence'].replace('\d', '', regex=True)                                                   # remove numbers
     for index, row in data.iterrows():
