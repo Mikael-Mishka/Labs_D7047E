@@ -124,7 +124,7 @@ def Task_0_2_1():
     # Hyperparameters
     batch_size = 64
     learning_rate = 1e-4
-    num_epochs = 5
+    num_epochs = 10
 
     # Define transforms to resize images to 224x224 (AlexNet input size)
     transform = transforms.Compose([
@@ -487,7 +487,7 @@ def Task_0_2_2():
     # Hyperparameters
     batch_size = 64
     learning_rate = 1e-4
-    num_epochs = 3
+    num_epochs = 10
 
     # Prepare the MNIST dataset
     transform = ToTensor()

@@ -141,6 +141,7 @@ class CNN(nn.Module):
             validation_losses.append(current_validation_loss)
             validation_accuracies.append(current_accuracy)
 
+
             if time.time() - last_print > 15:
                 last_print = time.time()
                 # Print the results
