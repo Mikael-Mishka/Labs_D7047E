@@ -55,7 +55,6 @@ if __name__ == "__main__":
     validation_x_tensor = torch.from_numpy(np.array(validation_data)).type(torch.FloatTensor)
     validation_y_tensor = torch.from_numpy(np.array(validation_labels)).long()
 
-
     # Prints to confirm the data is loaded and pre-processed
     print("Training data: ", train_x_tensor.shape)
     print("Training labels: ", train_y_tensor.shape)
