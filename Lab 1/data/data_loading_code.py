@@ -13,8 +13,8 @@ nltk.download('stopwords')
 def preprocess_pandas(data, columns):
     df_ = pd.DataFrame(columns=columns)
     data['Sentence'] = data['Sentence'].str.lower()
-    data['Sentence'] = data['Sentence'].str.replace('[a-zA-Z0-9-_.]+@[a-zA-Z0-9-_.]+', '', regex=True)                      # remove emails
-    data['Sentence'] = data['Sentence'].str.replace('((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}', '', regex=True)    # remove IP address
+    data['Sentence'] = data['Sentence'].str.replace(r'[a-zA-Z0-9-_.]+@[a-zA-Z0-9-_.]+', '', regex=True)                      # remove emails
+    data['Sentence'] = data['Sentence'].str.replace(r'((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}', '', regex=True)    # remove IP address
     data['Sentence'] = data['Sentence'].str.replace(r'[^\w\s]','')                                                       # remove special characters
     data['Sentence'] = data['Sentence'].replace('\d', '', regex=True)                                                   # remove numbers
     for index, row in data.iterrows():
@@ -54,7 +54,6 @@ if __name__ == "__main__":
     train_y_tensor = torch.from_numpy(np.array(training_labels)).long()
     validation_x_tensor = torch.from_numpy(np.array(validation_data)).type(torch.FloatTensor)
     validation_y_tensor = torch.from_numpy(np.array(validation_labels)).long()
-
 
     # Prints to confirm the data is loaded and pre-processed
     print("Training data: ", train_x_tensor.shape)
