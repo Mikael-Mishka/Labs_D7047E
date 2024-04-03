@@ -19,7 +19,7 @@ def Task_0_1():
     tensorBoard = TensorBoardHandler()
 
     # Define the hyperparameters
-    num_epochs = 1
+    num_epochs = 10
     batch_size = 64
     learning_rate = 1e-4
 
@@ -86,7 +86,7 @@ The following steps will guide you in creating your own experiment.
 SOLUTION:     
     """)
 
-    print(f"\n----- Task 0.1 (TRAINING)- Training SGD optimizer and ReLU activation function -----\n")
+    print(f"\n----- Task 0.1 (TRAINING)- Training SGD optimizer and LeakyReLU activation function -----\n")
 
     # Train the model
     best_accuracy_SGD, best_epoch_SGD, SGD_train_losses, SGD_val_losses, SGD_val_accuracies = model.train_model(
@@ -100,7 +100,7 @@ SOLUTION:
     # Report on the Test accuracy and prints the models best result on training.
     test_accuracy_SGD = model.test_model(test_loader)
     print(
-        f"\n----- Task 0.1 (RESULTS)- Using SGD optimizer and ReLU activation function -----",
+        f"\n----- Task 0.1 (RESULTS)- Using SGD optimizer and LeakyReLU activation function -----",
         f"Best validation accuracy: {best_accuracy_SGD} at epoch {best_epoch_SGD} - Best model test set accuracy: {test_accuracy_SGD}\n", sep="\n")
 
     # Create the model
@@ -109,7 +109,7 @@ SOLUTION:
     # Defines the optimizer
     optimizer = torch.optim.Adam(ADAM_model.parameters(), lr=learning_rate)
 
-    print(f"\n----- Task 0.1 (TRAINING)- Training ADAM optimizer and ReLU activation function -----\n")
+    print(f"\n----- Task 0.1 (TRAINING)- Training ADAM optimizer and LeakyReLU activation function -----\n")
 
     # Train the model
     best_accuracy_ADAM, best_epoch_ADAM, train_losses_ADAM, val_losses_ADAM, val_accuracies_ADAM = ADAM_model.train_model(
@@ -125,7 +125,7 @@ SOLUTION:
     # Report on the Test accuracy and prints the models best result on training.
     test_accuracy_ADAM = ADAM_model.test_model(test_loader)
     print(
-        f"\n----- Task 0.1 (RESULTS)- Using ADAM optimizer and ReLU activation function -----",
+        f"\n----- Task 0.1 (RESULTS)- Using ADAM optimizer and LeakyReLU activation function -----",
         f"Best validation accuracy: {max(val_accuracies_ADAM)} at epoch {best_epoch_ADAM} - Best model test set accuracy: {test_accuracy_ADAM}\n", sep="\n")
 
     print("""
