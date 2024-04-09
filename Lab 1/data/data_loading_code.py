@@ -27,10 +27,9 @@ def preprocess_pandas(data, columns):
         }, ignore_index=True)
     return data
 
-# If this is the primary file that is executed (ie not an import of another file)
-if __name__ == "__main__":
+def get_data():
     # get data, pre-process and split
-    data = pd.read_csv("amazon_cells_labelled.txt", delimiter='\t', header=None)
+    data = pd.read_csv("/home/convergent/PycharmProjects/Labs D7047E/Lab 1/data/amazon_cells_labelled.txt", delimiter='\t', header=None)
     data.columns = ['Sentence', 'Class']
     data['index'] = data.index                                          # add new column index
     columns = ['index', 'Class', 'Sentence']
@@ -42,6 +41,8 @@ if __name__ == "__main__":
         random_state=0,
         shuffle=True
     )
+
+    print(type(training_data))
 
     # vectorize data using TFIDF and transform for PyTorch for scalability
     word_vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(1,2), max_features=50000, max_df=0.5, use_idf=True, norm='l2')
@@ -63,3 +64,7 @@ if __name__ == "__main__":
     print("Vocabulary size: ", vocab_size)
     print("Data loaded and pre-processed successfully")
 
+    return train_x_tensor, train_y_tensor, validation_x_tensor, validation_y_tensor, vocab_size, word_vectorizer
+
+def TensorizeWord(data:str, vectorizer):
+    test_data = vectorizer.fit_transform(data)
