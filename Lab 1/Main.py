@@ -124,7 +124,7 @@ def prepare_user_input(user_input, vectorizer):
 
 
 def main():
-    train_x_tensor, train_y_tensor, validation_x_tensor, validation_y_tensor, vocab_size, word_vectorizer = data_loading_code.get_data()
+    train_x_tensor, train_y_tensor, validation_x_tensor, validation_y_tensor, vocab_size, word_vectorizer, _, _ = data_loading_code.get_data_test()
 
     # HYPERPARAMETERS
     EPOCHS = 50
@@ -159,10 +159,11 @@ def main():
         print("ReviewBot:", chat_bot_response(predicted), sep=" ")
         
         # The following lines count and display the answers of the network (just an example, can be used during testing)
-        prev_answers = []
-        answer_cnt = np.zeros(2)
+        # To get a test batch, use data_loading_code.get_data_test() instead of data_loading_code.get_data(), it will also return test data
         predicted_class = predicted[0].item()
         expected_class = 0 # placeholder, must be replaced by the label in a test context
+        prev_answers = []
+        answer_cnt = np.zeros(2)
         prev_answers, answer_cnt = dialogue_manager.answer_tracker(predicted_class, expected_class, prev_answers=prev_answers, answer_cnt=answer_cnt)
         dialogue_manager.display_answers(prev_answers, answer_cnt)
 
