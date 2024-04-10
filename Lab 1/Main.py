@@ -1,11 +1,13 @@
 import os
 
 from data import data_loading_code
+from dialogue_manager import dialogue_manager
 from torch import nn
 import torch
 import random
 from torch.utils.data import DataLoader, TensorDataset
 import re
+import numpy as np
 
 # import vectorizer from the data file. It would make sense
 # for us to the same as was to prepare the data.
@@ -155,6 +157,14 @@ def main():
         _, predicted = torch.max(output, 1)
 
         print("ReviewBot:", chat_bot_response(predicted), sep=" ")
+        
+        # The following lines count and display the answers of the network (just an example, can be used during testing)
+        prev_answers = []
+        answer_cnt = np.zeros(2)
+        predicted_class = predicted[0].item()
+        expected_class = 0 # placeholder, must be replaced by the label in a test context
+        prev_answers, answer_cnt = dialogue_manager.answer_tracker(predicted_class, expected_class, prev_answers=prev_answers, answer_cnt=answer_cnt)
+        dialogue_manager.display_answers(prev_answers, answer_cnt)
 
 
 
