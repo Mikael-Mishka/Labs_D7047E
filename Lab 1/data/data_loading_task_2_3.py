@@ -1,3 +1,6 @@
+import time
+from typing import List
+
 import torch
 import numpy as np
 import pandas as pd
@@ -20,7 +23,7 @@ def preprocess_pandas(data, columns):
     data['Text'] = data['Text'].replace('\d', '', regex=True)                                                   # remove numbers
     for index, row in data.iterrows():
         word_tokens = word_tokenize(row['Text'])
-        filtered_sent = [w for w in word_tokens if not w in stopwords.words('english')]
+        filtered_sent = [w for w in word_tokens if w not in stopwords.words('english')]
         df_ = df_._append({
             "index": row['index'],
             "Score": row['Score'],
@@ -30,8 +33,98 @@ def preprocess_pandas(data, columns):
 
 
 def prepare_task_2_and_3_data():
+
+    import pathlib
+    data_path = pathlib.Path("Reviews.csv")
+
     # Load the data
-    data = pd.read_csv('/home/convergent/PycharmProjects/Labs D7047E/Lab 1/data/Reviews.csv')
+    data = pd.read_csv(str(data_path))
+    vocab = set()
+    import multiprocessing
+
+    from multiprocessing import managers
+    manager = managers.SyncManager()
+    manager.start()
+    shared_tkn_count = manager.dict()
+
+    def progress_worker(queue: multiprocessing.Queue, freq):
+        """
+        Prints a progress bar and the number of items in the queue
+        """
+        start_size = queue.qsize()
+        ASCII_PREV_LINE = "\033[F"
+        ASCII_NEXT_LINE = "\033[E"
+        ASCII_CLEAR_FROM_CURSOR = "\033[0J"
+
+        while queue.qsize() > 0:
+            print(ASCII_CLEAR_FROM_CURSOR, end='')
+            # Print bar as (start_size - current_size) * =
+            curr_size = queue.qsize()
+            # start_size >= curr_size
+            progress = (start_size - curr_size) / start_size
+            progress *= 100
+            progress = int(progress)
+            prog = "=" * progress
+            remaining = ">" + " " * (100 - progress - 1)
+            print(f"|{prog}{remaining}|")
+            print(f"Queue size: {curr_size}")
+            print(ASCII_PREV_LINE * 2, end='')
+            time.sleep(1/freq)
+        print()
+
+    def count_tokens(data: pd.DataFrame, shared_tkn_count: dict):
+        for index, row in data.iterrows():
+            word_tokens = word_tokenize(row['Text'])
+            for w in word_tokens:
+                shared_tkn_count[w] = shared_tkn_count.setdefault(w, 0) + 1
+
+    def token_counter(shared_tkn_count: dict, queue: multiprocessing.Queue):
+        while True:
+            try:
+                data = queue.get()
+                count_tokens(data, shared_tkn_count)
+            # except queue.Empty:
+            except Exception as e:
+                if not queue.empty():
+                    import logging
+                    logging.getLogger(__name__).error(f"Error: {e}")
+                break
+
+    # 1 process per core
+    queue = multiprocessing.Queue()
+    pool = [multiprocessing.Process(target=token_counter, args=(shared_tkn_count, queue)) for _ in range(multiprocessing.cpu_count())]
+    prog_process = multiprocessing.Process(target=progress_worker, args=(queue, 18))
+
+    # Split up the data and put it in the queue
+    data: pd.DataFrame
+    chunk_size = 100
+    for i in range(0, len(data), chunk_size):
+        queue.put(data[i:i+chunk_size])
+
+    # Start the processes
+    for p in pool:
+        p.start()
+
+    prog_process.start()
+
+    # Wait for the processes to finish
+    for p in pool:
+        # With a timeout
+        p.join()
+
+    shared_tkn_count = dict(shared_tkn_count)
+
+    print(f"Vocab size: {len(shared_tkn_count)}",
+          f"Token items: ",
+          *sorted(shared_tkn_count.items(), key=lambda e: e[1], reverse=True), sep='\n')
+
+    vocab = list(shared_tkn_count.keys())
+    special_tokens = ['<PAD>', '<UNK>', '<STP_WORD>', '<EOS>']
+    vocab = special_tokens + vocab
+    word2idx = {word: idx for idx, word in enumerate(vocab)}
+    idx2word = {idx: word for word, idx in word2idx.items()}
+
+
 
     # Columns in the data:
     #   Id,
@@ -65,104 +158,31 @@ def prepare_task_2_and_3_data():
         shuffle=True
     )
 
+    # Convert string data in the '_data' arrays to token indices
+    def tokenize(data):
+        res = list()
+        for word in word_tokenize(data):
+            if res in stopwords.words('english'):
+                res.append(word2idx['<STP_WORD>'])
+                continue
 
-    #data_percentage_to_use = 0.01
+            res.append(word2idx.get(word, word2idx['<UNK>']))
 
-    # Use only 2 percent of the data
-    #training_data = training_data[:int(len(training_data) * data_percentage_to_use)]
-    #training_labels = training_labels[:int(len(training_labels) * data_percentage_to_use)]
-    #validation_data = validation_data[:int(len(validation_data) * data_percentage_to_use)]
-    #validation_labels = validation_labels[:int(len(validation_labels) * data_percentage_to_use)]
+        return res
 
-    # Make sure the amount of labeled datapoints is uniform for training and validation sets
-    num_of_datpoints_per_class = 1000
 
-    # Get the indices of the datapoints that are labeled with 1, 2, 3, 4, 5
-    indices_1 = np.where(training_labels == 1)[0]
-    indices_2 = np.where(training_labels == 2)[0]
-    indices_3 = np.where(training_labels == 3)[0]
-    indices_4 = np.where(training_labels == 4)[0]
-    indices_5 = np.where(training_labels == 5)[0]
+    training_data = torch.tensor([tokenize(review) for review in training_data], dtype=torch.int64)
+    validation_data = torch.tensor([tokenize(review) for review in validation_data], dtype=torch.int64)
+    training_labels, validation_labels = torch.tensor(training_labels, dtype=torch.int64), torch.tensor(validation_labels, dtype=torch.int64)
 
-    print(len(indices_1), len(indices_2), len(indices_3), len(indices_4), len(indices_5))
+    print(training_data)
 
-    # Get the data for the new training set
-    new_data_training = []
+    # Convert labels to class indices
+    training_labels -= 1
+    validation_labels -= 1
 
-    new_data_training.extend(training_data[indices_1][:num_of_datpoints_per_class])
-    new_data_training.extend(training_data[indices_2][:num_of_datpoints_per_class])
-    new_data_training.extend(training_data[indices_3][:num_of_datpoints_per_class])
-    new_data_training.extend(training_data[indices_4][:num_of_datpoints_per_class])
-    new_data_training.extend(training_data[indices_5][:num_of_datpoints_per_class])
+    # Convert the data to a torch.Tensor
 
-    # Get the labels for the new data
-    new_data_training_labels = []
+    print(training_labels)
 
-    new_data_training_labels.extend([1 for _ in range(num_of_datpoints_per_class)])
-    new_data_training_labels.extend([2 for _ in range(num_of_datpoints_per_class)])
-    new_data_training_labels.extend([3 for _ in range(num_of_datpoints_per_class)])
-    new_data_training_labels.extend([4 for _ in range(num_of_datpoints_per_class)])
-    new_data_training_labels.extend([5 for _ in range(num_of_datpoints_per_class)])
-
-    # Get the indices of the datapoints that are labeled with 1, 2, 3, 4, 5
-    new_data_validation = []
-
-    # Get the indices of the datapoints that are labeled with 1, 2, 3, 4, 5
-    indices_1 = np.where(validation_labels == 1)[0]
-    indices_2 = np.where(validation_labels == 2)[0]
-    indices_3 = np.where(validation_labels == 3)[0]
-    indices_4 = np.where(validation_labels == 4)[0]
-    indices_5 = np.where(validation_labels == 5)[0]
-
-    # Get the data for the new validation set
-    new_data_validation.extend(validation_data[indices_1][:num_of_datpoints_per_class])
-    new_data_validation.extend(validation_data[indices_2][:num_of_datpoints_per_class])
-    new_data_validation.extend(validation_data[indices_3][:num_of_datpoints_per_class])
-    new_data_validation.extend(validation_data[indices_4][:num_of_datpoints_per_class])
-    new_data_validation.extend(validation_data[indices_5][:num_of_datpoints_per_class])
-
-    # Get the labels for the new validation data
-    new_data_validation_labels = []
-
-    # Get the labels for the new data
-    new_data_validation_labels.extend([1 for _ in range(num_of_datpoints_per_class)])
-    new_data_validation_labels.extend([2 for _ in range(num_of_datpoints_per_class)])
-    new_data_validation_labels.extend([3 for _ in range(num_of_datpoints_per_class)])
-    new_data_validation_labels.extend([4 for _ in range(num_of_datpoints_per_class)])
-    new_data_validation_labels.extend([5 for _ in range(num_of_datpoints_per_class)])
-
-    # Convert all new_data to numpy arrays
-    training_data = np.array(new_data_training)
-    training_labels = np.array(new_data_training_labels)
-    validation_data = np.array(new_data_validation)
-    validation_labels = np.array(new_data_validation_labels)
-
-    print(type(training_data), type(training_labels), type(validation_data), type(validation_labels))
-
-    # vectorize data using TFIDF and transform for PyTorch for scalability (max_Features is DANGEROUS DO NOT SET THIS TOO HIGH)
-    word_vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), max_features=500, max_df=0.5, use_idf=True,
-                                      norm='l2')
-    training_data = word_vectorizer.fit_transform(training_data)  # transform texts to sparse matrix
-    training_data = training_data.todense()  # convert to dense matrix for Pytorch
-    vocab_size = len(word_vectorizer.vocabulary_)
-    validation_data = word_vectorizer.transform(validation_data)
-    validation_data = validation_data.todense()
-    train_x_tensor = torch.from_numpy(np.array(training_data)).type(torch.LongTensor)
-    train_y_tensor = torch.from_numpy(np.array(training_labels))
-    validation_x_tensor = torch.from_numpy(np.array(validation_data)).type(torch.LongTensor)
-    validation_y_tensor = torch.from_numpy(np.array(validation_labels))
-
-    # y_tensors will be converted to class indicies
-    train_y_tensor = train_y_tensor - 1
-    validation_y_tensor = validation_y_tensor - 1
-
-    # Prints to confirm the data is loaded and pre-processed
-    print("Training data: ", train_x_tensor.shape)
-    print("Training labels: ", train_y_tensor.shape)
-    print("Validation data: ", validation_x_tensor.shape)
-    print("Validation labels: ", validation_y_tensor.shape)
-    print("Vocabulary size: ", vocab_size)
-    print("Data loaded and pre-processed successfully")
-
-    return train_x_tensor, train_y_tensor, validation_x_tensor, validation_y_tensor, vocab_size, word_vectorizer
-
+prepare_task_2_and_3_data()
