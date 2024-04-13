@@ -70,7 +70,7 @@ def prepare_task_2_and_3_data():
             print(f"Queue size: {curr_size}")
             print(ASCII_PREV_LINE * 2, end='')
             time.sleep(1/freq)
-        print()
+        print(f"DONE!, Items processed: {start_size} out of {start_size}")
 
     def count_tokens(data: pd.DataFrame, shared_tkn_count: dict):
         for index, row in data.iterrows():
@@ -79,7 +79,7 @@ def prepare_task_2_and_3_data():
                 shared_tkn_count[w] = shared_tkn_count.setdefault(w, 0) + 1
 
     def token_counter(shared_tkn_count: dict, queue: multiprocessing.Queue):
-        while True:
+        while queue.qsize() > 0:
             try:
                 data = queue.get()
                 count_tokens(data, shared_tkn_count)
