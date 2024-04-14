@@ -171,8 +171,8 @@ def prepare_task_2_and_3_data():
         return res
 
 
-    training_data = torch.tensor([tokenize(review) for review in training_data], dtype=torch.int64)
-    validation_data = torch.tensor([tokenize(review) for review in validation_data], dtype=torch.int64)
+    training_data = torch.tensor([tokenize(review, pad_len) for review in training_data], dtype=torch.int64)
+    validation_data = torch.tensor([tokenize(review, pad_len) for review in validation_data], dtype=torch.int64)
     training_labels, validation_labels = torch.tensor(training_labels, dtype=torch.int64), torch.tensor(validation_labels, dtype=torch.int64)
 
     print(training_data)
