@@ -131,6 +131,9 @@ class CNN(nn.Module):
                     total = labels.size(0)
                     current_accuracy += (correct / total)
 
+
+
+
             # Calculate the average loss and accuracy
             current_train_loss /= len(train_loader)
             current_validation_loss /= len(validation_loader)

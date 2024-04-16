@@ -1,18 +1,24 @@
-import torch
-import numpy
-import matplotlib
-import sklearn
+vocab = ["Hej", "den", "Det", "test"]
+vocab = list(map(lambda _str: _str.lower(), vocab))
+special_tokens = ["UNK"]
 
-def main():
-    print("Hello World!")
-    print(torch.__version__,
-          numpy.__version__,
-          matplotlib.__version__,
-          sklearn.__version__)
+import re
+token_pattern = re.compile(r'|'.join(sorted(vocab, key=len, reverse=True)), re.UNICODE | re.IGNORECASE)
+vocab = special_tokens + vocab
 
-if __name__ == "__main__":
-    main()
-    a = torch.Tensor([3])
-    b = torch.Tensor([3])
+word2indices = {word: i for i, word in enumerate(vocab)}
+indices2word = {i: word for i, word in enumerate(vocab)}
 
-    print(a*b)
+import re
+msg = "Hej, det här är ett test"
+print("Message:", msg)
+
+print("Word indices:", end=" ")
+
+idxs = []
+for word in re.findall(r'\w+', msg):
+    idxs.append(word2indices.get(word.lower(), word2indices["UNK"]))
+print(idxs)
+
+all_matches = list(token_pattern.finditer(msg))
+pass
