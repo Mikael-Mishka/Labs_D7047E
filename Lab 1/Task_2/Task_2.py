@@ -3,7 +3,6 @@ import pickle
 import torch
 from EncoderTransformer import Transformer
 import torch.nn as nn
-from sklearn.metrics import confusion_matrix
 from torchinfo import summary
 import math
 # import TensorDataset
@@ -147,6 +146,34 @@ def run():
     training_data = DataLoader(training_dataset, batch_size=BATCH_SIZE, shuffle=True)
     validation_data = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
+    # the amount of 5 labels in the training data
+    amount_of_4 = (training_labels == 4).sum().item()
+
+    # Print the amount of 4 labels in the training data
+    amount_of_3 = (training_labels == 3).sum().item()
+
+    # Print the amount of 3 labels in the training data
+    amount_of_2 = (training_labels == 2).sum().item()
+
+    # Print the amount of 2 labels in the training data
+    amount_of_1 = (training_labels == 1).sum().item()
+
+    # Print the amount of 1 labels in the training data
+    amount_of_0 = (training_labels == 0).sum().item()
+
+    print(f"Amount of 4 labels in the training data: {amount_of_4}",
+          f"Amount of 3 labels in the training data: {amount_of_3}",
+          f"Amount of 2 labels in the training data: {amount_of_2}",
+          f"Amount of 1 labels in the training data: {amount_of_1}",
+          f"Amount of 0 labels in the training data: {amount_of_0}",sep="\n")
+
+    print(f"Ration of 4 labels in the training data: {amount_of_4 / len(training_labels)}",
+          f"Ration of 3 labels in the training data: {amount_of_3 / len(training_labels)}",
+          f"Ration of 2 labels in the training data: {amount_of_2 / len(training_labels)}",
+          f"Ration of 1 labels in the training data: {amount_of_1 / len(training_labels)}",
+          f"Ration of 0 labels in the training data: {amount_of_0 / len(training_labels)}",
+          f"Length of training label set: {len(training_labels)}", sep="\n")
+
     import gc
     print(f"Garbage collector: {gc.collect()}")
 
@@ -171,6 +198,9 @@ def run():
           f"2. Best epoch: {validation_accuracies.index(max(validation_accuracies))}",
           f"3. Best Perplexity: {math.e**best_validation_loss}",
           f"4. Time to train {EPOCHS} Epochs for Encoder transformer {end_time-start_time}", sep="\n")
+
+    from Plot import plot
+    plot(train_losses, validation_losses, validation_accuracies, EPOCHS, "Transformer")
 
 if __name__ == "__main__":
     run()

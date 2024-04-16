@@ -66,6 +66,9 @@ class DialogManager():
         # Define the Simple Chatbot
         self.simple_chatbot = SimpleChatbot(vocab_size, 2)
 
+        from torchinfo import summary
+        summary(self.simple_chatbot)
+
         # Create the Datasets
         train_dataset = TensorDataset(train_x_tensor, train_y_tensor)
         validation_dataset = TensorDataset(validation_x_tensor, validation_y_tensor)

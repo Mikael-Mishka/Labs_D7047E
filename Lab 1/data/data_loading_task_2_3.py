@@ -192,7 +192,10 @@ def prepare_task_2_and_3_data():
                       'HelpfulnessNumerator',
                       'HelpfulnessDenominator',
                       'Time'], axis=1)
+
+    # Regex to captures atleast one word in a string
     token_pat = re.compile(r'\w+', re.IGNORECASE)
+
     pad_len = int(np.percentile(list(map(lambda x: len(token_pat.findall(x)), data["Text"].values)),  99))
     print(f"PAD size: {pad_len}")
 
