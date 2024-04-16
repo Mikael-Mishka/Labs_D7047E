@@ -1,11 +1,5 @@
 import torch.cuda
 
-from dialog_manager import DialogManager
-
-
-
-def main():
-
     dialog_manager = DialogManager()
 
     dialog_manager.task_1()
