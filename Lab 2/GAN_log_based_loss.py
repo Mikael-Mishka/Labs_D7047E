@@ -6,10 +6,40 @@ from torch.utils.data import DataLoader
 
 # Assuming the Generator and Discriminator classes are defined as before
 
+class Generator(nn.Module):
+    def __init__(self, input_size, hidden_dim, output_size):
+        super(Generator, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden_dim),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_dim, hidden_dim * 2),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_dim * 2, output_size),
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+class Discriminator(nn.Module):
+    def __init__(self, input_size, hidden_dim):
+        super(Discriminator, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden_dim * 2),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_dim, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
 # Hyperparameters setup
 batch_size = 128
 learning_rate = 0.0002
-epochs = 100
+epochs = 20000
 input_size = 100  # Size of the latent vector
 hidden_dim = 256
 output_size = 28 * 28  # Assuming MNIST (28x28 images)
@@ -39,6 +69,7 @@ d_optimizer = optim.Adam(discriminator.parameters(), lr=learning_rate)
 for epoch in range(epochs):
     for i, (images, _) in enumerate(train_loader):
         # Prepare real images
+        batch_size=len(images)
         images = images.reshape(batch_size, -1).to(device)
 
         # Generate fake images
