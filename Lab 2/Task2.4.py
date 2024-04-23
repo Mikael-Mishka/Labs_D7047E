@@ -25,8 +25,7 @@ from torchvision.datasets import MNIST
 
 #adversarial images
 
-
-
+    #random imits
 
 
 
