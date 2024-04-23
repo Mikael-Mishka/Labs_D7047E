@@ -38,7 +38,7 @@ class Discriminator(nn.Module):
 # Hyperparameters
 batch_size = 128
 learning_rate = 0.0002
-epochs = 100
+epochs = 20000
 input_size = 784  # Size of the latent vector to generate the images #Network parameters
 hidden_dim = 256 #Network parameter
 output_size = 28*28  # This should match the size of the images in the dataset (e.g., 784 for MNIST) #Network parameters
@@ -55,7 +55,7 @@ transform = transforms.Compose([
 ])
 
 
-#Ladda datan som vi vill använda på nätverket
+#Ladda datan som vi vill använda på nätverket - Load the data we want to use on the network
 train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
