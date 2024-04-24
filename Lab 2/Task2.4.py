@@ -1,19 +1,11 @@
-
-from torchvision.datasets import MNIST
-
-
-
-
-
-#Deta spliting
 import torch
-from torchvision import datasets, transforms
+from torchvision.datasets import MNIST, transforms
+import torch.nn as nn 
 
-# Define the transformation to apply to the data
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,))  # Mean and std for MNIST dataset
-])
+# we defined transformation to apply to the data by convert the input images to tensors and normalize them 
+based on the mean and standard deviation of the MNIST dataset.
+transform = transforms.Compose([ transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,)) # Mean and std for MNIST dataset])
 
 # Download and load the MNIST dataset
 mnist_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
@@ -25,8 +17,7 @@ train_set, val_set = torch.utils.data.random_split(mnist_dataset, [50000, 10000]
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=64, shuffle=True)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=64, shuffle=False)
 
-#the CNN model Architecture with two convolutional layers, two max-pooling layers, and two fully connected layers
-import torch.nn as nn
+# the CNN model Architecture with two convolutional layers, two max-pooling layers, and two fully connected layers
 
 class CNNModel(nn.Module):
     def __init__(self):
