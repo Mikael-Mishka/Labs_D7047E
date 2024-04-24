@@ -343,7 +343,7 @@ train_set, val_set = torch.utils.data.random_split(mnist_dataset, [20000, 4000])
 # DataLoaders for training and testing
 train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
 val_loader = DataLoader(val_set, batch_size=64, shuffle=False)
-test_loader = DataLoader(val_set, batch_size=64, shuffle=False)
+
 
 # Define a simple CNN architecture for MNIST
 class Flatten(nn.Module):
