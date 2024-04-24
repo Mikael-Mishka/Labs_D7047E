@@ -455,6 +455,7 @@ class CNN_2(nn.Module):
     # Get the indices of '4's in the test set
     index_of_4s = [i for i, t in enumerate(train_set.targets) if t == 4]
 
+    # Choose a random '4' image
     rand_index = random.randint(0, len(index_of_4s) - 1)
     image_4 = train_set.data[index_of_4s[rand_index]].float() / 255.0  # normalize to [0, 1]
 
