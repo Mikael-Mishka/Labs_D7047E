@@ -323,6 +323,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
+from torchvision.datasets import MNIST
 import numpy as np
 
 # Set a random seed for reproducibility
