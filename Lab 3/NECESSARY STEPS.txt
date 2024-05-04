@@ -1,0 +1,23 @@
+Install keras and cv2 by entering the following commands:
+$ pip install keras
+$ pip install opencv-python
+
+
+You will also need the dataset. 
+Download the dataset with the following links (you need both of them):
+Flicker8k_Dataset
+https://github.com/jbrownlee/Datasets/releases/download/Flickr8k/Flickr8k_Dataset.zip
+Flicker8k_Text
+https://github.com/jbrownlee/Datasets/releases/download/Flickr8k/Flickr8k_text.zip
+
+Then unzip the archives downloaded, you should have one folder named 'Flicker8k_Dataset' and 8 text files (you can remove the _MACOSX folders). Put all the text files in a folder named 'Flicker8k_text', and put both 'Flicker8k_Dataset' and 'Flicker8k_text' folders in Lab 3
+
+
+One last thing you will need is the glove.6B.50d file.
+Download it on this website:
+https://www.kaggle.com/datasets/watts2/glove6b50dtxt/data
+
+Then unarchive the file and put it in Lab 3
+
+
+The files you have to download yourself are heavy files that should NOT be pushed on git.
