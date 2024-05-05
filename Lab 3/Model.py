@@ -53,7 +53,7 @@ def multimodal_model(image_input_shape, vocab_size, emb_dim, emb_mat, max_length
 
     model.summary()
     # Compile the model
-    model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.001), metrics=['accuracy'])
 
     return model
 
