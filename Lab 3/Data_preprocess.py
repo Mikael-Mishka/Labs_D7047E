@@ -6,7 +6,9 @@ from sklearn.model_selection import train_test_split
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
 import numpy as np
-
+import io
+import keras
+from keras.preprocessing.sequence import pad_sequences
 
 def image_preprocess():
     fldr1 = './Flicker8k_Dataset'
@@ -40,7 +42,7 @@ def image_preprocess():
 def text_extractor():
     print('Text extracting started')
     file = './Flicker8k_text/Flickr8k.token.txt'
-    f = open(file)
+    f = io.open(file, encoding="utf-8-sig")
     lines = f.readlines()
     main_df = pd.DataFrame()
 
@@ -112,7 +114,7 @@ def tokenizer(y_f):
                     count += 1
 
     print('Different words mapped:', count - 1)
-    out_file = open("./word_map.json", "w")
+    out_file = io.open("./word_map.json", "w", encoding="utf-8-sig")
     json.dump(word_map, out_file)
     out_file.close()
     print('Tokenization done')
@@ -166,7 +168,8 @@ def caption_preprocess():
     y = []
 
     for k in mapping.keys():
-        X.append(mapping[k]['image'])
+        for _ in range(5):
+            X.append(mapping[k]['image'])
         y.append(mapping[k]['desc'])
 
     X_f = np.array(X)
@@ -177,13 +180,12 @@ def caption_preprocess():
 
     tokenizer(y_f)
 
-
-def word_embedding():
+def word_embedding(max_length):
     print('Word embedding started')
 
     X_f = np.load('./X_f.npy')
     y_f = np.load('./y_f.npy')
-    out_file = open("./word_map.json", "r")
+    out_file = io.open("./word_map.json", "r", encoding="utf-8-sig")
     word_map = json.load(out_file)
     out_file.close()
 
@@ -196,15 +198,15 @@ def word_embedding():
             temp_sent = []
             for word in words:
                 temp_sent.append(word_map[word]['Rep'])
-            temp_sent = np.pad(np.array(temp_sent), (0, 40 - len(temp_sent)))
-            Y_temp.append(temp_sent)
+            temp_sent = np.pad(np.array(temp_sent), (0, max_length-len(temp_sent)))
+            Y.append(temp_sent)
 
-        #print(Y_temp)
-        Y.append(Y_temp)
-
-    Y_n = np.array(Y)
+    Y_n=np.array(Y)
 
     # X_f_2=X_f/255
+
+    # Reducing the dataset
+    _, X_f, _,Y_n = train_test_split(X_f, Y_n, test_size=0.063)
 
     # Splitting the data
     X_train, X_test, Y_train, Y_test = train_test_split(X_f, Y_n, test_size=0.2)
@@ -217,7 +219,7 @@ def word_embedding():
     # For embedding we use Glove6B by the standford NLP
     # This code picks up every word in the dataset and picks its 50d embedding from the glove 6b.
     # So, as we have 9385 words our embedding will have a dimension of 9385x50
-    with open('./glove.6B.50d.txt', encoding="utf8") as f:
+    with io.open('./glove.6B.50d.txt', encoding="utf-8-sig") as f:
         for line in f:
             word, *emb = line.split()
             if word in word_map.keys():
@@ -227,3 +229,35 @@ def word_embedding():
 
     np.save('./emb_mat.npy', emb_mat)
     return X_train, X_test, Y_train, Y_test, emb_mat
+
+def get_word(i,word_map):
+  for key,vals in word_map.items():
+    if vals[0]==i:
+      return key
+
+def generate_results(model,image,length,word_map):
+
+  text="startseq"
+
+  for i in range(length):
+    words=text.split()
+    sequence=[]
+    for j in words:
+      sequence.append(word_map[word]['Rep'])
+    sequence=pad_sequences([sequence],max_length=length)
+
+    word_predict=model.predict([image,sequence])
+
+    word_pr=np.argmax(word_predict)
+
+    word=get_word(word_pr,word_map)
+
+    if word is None:
+      break
+    
+    text=text + ' ' + word
+
+    if word=='endseq':
+      break
+
+  return text
