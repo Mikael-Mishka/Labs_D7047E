@@ -33,7 +33,6 @@ def text_model(vocab_size, emb_dim, emb_mat, max_length):
     emb1 = Embedding(input_dim=vocab_size, output_dim=emb_dim, weights=[emb_mat], trainable=False)(inputs_language)
     dr1 = Dropout(0.2)(emb1)
     lstm1 = LSTM(128, return_sequences=True)(dr1)
-    
     lstm2 = LSTM(256, return_sequences=True)(lstm1)  # Return only the final output
     return Model(inputs=inputs_language, outputs=lstm2)
 
