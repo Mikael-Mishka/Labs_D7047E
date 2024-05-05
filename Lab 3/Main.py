@@ -1,46 +1,17 @@
-# Import torch
 import torch
-
-# Import transforms
-from torchvision import transforms
-
-import numpy as np
 import os
+
+# Set Keras backend to TensorFlow
 os.environ["KERAS_BACKEND"] = "torch"
 
-#from keras.applications import efficientnet
-
-# Device configuration
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-from Data_preprocess import caption_preprocess, word_embedding
-from Model import model
-
-def Task1():
-    Model = model(input_shape = (224,224,3)) # shape to be modified
-    Model.summary()
-
-# This is the entry point of the program
-def main():
-    if True:
-        caption_preprocess()
-        X_train, X_test, Y_train, Y_test, emb_mat = word_embedding()
-    Task1()
-
-if __name__ == "__main__":
-    main()
-
-
+import keras
 import numpy as np
-import os
 from keras import backend as K  # For backend manipulation
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.model_selection import train_test_split
 from Data_preprocess import caption_preprocess, word_embedding
 from Model import multimodal_model
 
-# Set Keras backend to TensorFlow
-os.environ["KERAS_BACKEND"] = "torch"
 
 # Main task: Preprocess data, define model, and train
 def Task1():

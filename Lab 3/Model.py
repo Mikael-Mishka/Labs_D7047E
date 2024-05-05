@@ -59,14 +59,3 @@ def multimodal_model(image_input_shape, vocab_size, emb_dim, emb_mat, max_length
 
 
 
-# Combining Image and TextData
-
-# Create the final model
-    model = Model(inputs=[image_branch.input, text_branch.input], outputs=output_layer)
-
-    # Compile the model with categorical cross-entropy and Adam optimizer
-    model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.001), metrics=['accuracy'])
-
-    return model
-
-
