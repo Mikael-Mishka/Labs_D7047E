@@ -196,15 +196,18 @@ def word_embedding():
             temp_sent = []
             for word in words:
                 temp_sent.append(word_map[word]['Rep'])
+            temp_sent = np.pad(np.array(temp_sent), (0, 40 - len(temp_sent)))
             Y_temp.append(temp_sent)
+
+        #print(Y_temp)
         Y.append(Y_temp)
 
-    # Y_n=np.array(Y)
+    Y_n = np.array(Y)
 
     # X_f_2=X_f/255
 
     # Splitting the data
-    X_train, X_test, Y_train, Y_test = train_test_split(X_f, Y, test_size=0.2)
+    X_train, X_test, Y_train, Y_test = train_test_split(X_f, Y_n, test_size=0.2)
 
     # Creating embedding matrix for the word vectors
     emb_dim = 50
