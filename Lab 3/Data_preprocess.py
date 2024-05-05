@@ -112,7 +112,7 @@ def tokenizer(y_f):
                     count += 1
 
     print('Different words mapped:', count - 1)
-    out_file = open("./word_map.json", "w")
+    out_file = open("./word_map.json", "w", encoding="utf8")
     json.dump(word_map, out_file)
     out_file.close()
     print('Tokenization done')
@@ -178,7 +178,7 @@ def caption_preprocess():
 
     tokenizer(y_f)
 
-def word_embedding():
+def word_embedding(max_length):
     print('Word embedding started')
 
     X_f = np.load('./X_f.npy')
@@ -196,13 +196,16 @@ def word_embedding():
             temp_sent = []
             for word in words:
                 temp_sent.append(word_map[word]['Rep'])
-            temp_sent = np.pad(np.array(temp_sent), (0, 40-len(temp_sent)))
+            temp_sent = np.pad(np.array(temp_sent), (0, max_length-len(temp_sent)))
             #Y_temp.append(temp_sent)
             Y.append(temp_sent)
-        
+
     Y_n=np.array(Y)
 
     # X_f_2=X_f/255
+
+    # Reducing the dataset
+    _, X_f, _,Y_n = train_test_split(X_f, Y_n, test_size=0.063)
 
     # Splitting the data
     X_train, X_test, Y_train, Y_test = train_test_split(X_f, Y_n, test_size=0.2)
