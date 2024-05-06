@@ -209,8 +209,20 @@ def word_embedding(max_length):
     _, X_f, _,Y_n = train_test_split(X_f, Y_n, test_size=0.063)
 
     # Splitting the data
-    X_train, X_test, Y_train, Y_test = train_test_split(X_f, Y_n, test_size=0.2)
-
+    image_train, image_test, full_caption_train, full_caption_test = train_test_split(X_f, Y_n, test_size=0.2)
+        
+    # Targets
+    target_caption_train = np.array(list(map(lambda x: x[1:], full_caption_train)))
+    target_caption_test = np.array(list(map(lambda x: x[1:], full_caption_test)))
+    
+    # Inputs
+    input_caption_train = np.array(list(map(lambda x: x[:-1], full_caption_train)))
+    input_caption_test = np.array(list(map(lambda x: x[:-1], full_caption_train)))
+    
+    # Testing
+    input_caption_pred = np.array(list(map(lambda x: x[0], full_caption_test)))
+    
+        
     # Creating embedding matrix for the word vectors
     emb_dim = 50
     vocab = len(word_map) + 1
@@ -223,12 +235,12 @@ def word_embedding(max_length):
         for line in f:
             word, *emb = line.split()
             if word in word_map.keys():
-                emb_mat[word_map[word]['Rep']] = np.array(emb, dtype="float32")[:emb_dim]
+                emb_mat[word_map[word]['Rep']] = np.array(emb, dtype="float32")
 
     print('Word embedding done')
 
     np.save('./emb_mat.npy', emb_mat)
-    return X_train, X_test, Y_train, Y_test, emb_mat
+    return image_train, image_test, target_caption_train, input_caption_train, target_caption_test, input_caption_test, emb_mat
 
 def get_word(i,word_map):
   for key,vals in word_map.items():

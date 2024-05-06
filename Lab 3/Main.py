@@ -22,17 +22,22 @@ from Model import multimodal_model
 def Task1():
     # Run data preprocessing
     caption_preprocess()  # Extract and preprocess text and images
+    
     max_length = 35
-    X_train, X_test, Y_train, Y_test, emb_mat = word_embedding(max_length)  # Load preprocessed data
+    truncation_length = 50
+    end_token_idx = 15
+    
+    image_train, image_test, target_caption_train, input_caption_train, target_caption_test, input_caption_test, input_caption_pred, emb_mat = word_embedding(max_length)  # Load preprocessed data
     
     # Model parameters
-    image_input_shape = (224, 224, 3)
+    image_shape = (224, 224, 3)
     vocab_size, emb_dim = np.shape(emb_mat)
     
-    Y_train_one_hot = to_categorical(Y_train, num_classes=vocab_size)
+    target_caption_train_one_hot = to_categorical(target_caption_train, num_classes=vocab_size)
+    target_caption_test_one_hot = to_categorical(target_caption_test, num_classes=vocab_size)
     
     # Define multimodal model
-    model = multimodal_model(image_input_shape, vocab_size, emb_dim, emb_mat, max_length)
+    model = multimodal_model(image_shape, max_length, vocab_size, emb_dim, emb_mat, end_token_idx, truncation_length)
 
     # Define callbacks for training
     early_stopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1, mode='min')
@@ -40,8 +45,8 @@ def Task1():
     
     # Train the model
     history = model.fit(
-        [X_train, Y_train],  # Adjust inputs to match model's expected inputs
-        Y_train_one_hot,
+        [image_train, input_caption_train],  # Adjust inputs to match model's expected inputs
+        target_caption_train_one_hot,
         epochs=10,  # Modify based on the requirements
         batch_size=32,
         validation_split=0.2,
@@ -50,11 +55,11 @@ def Task1():
     )
     
     # Store the history
-    with open('/trainHistoryDict', 'wb') as file_pi:
+    with open('./trainHistoryDict', 'wb') as file_pi:
         pickle.dump(history.history, file_pi)
         
     # To retrieve the history, write these lines
-    #with open('/trainHistoryDict', "rb") as file_pi:
+    #with open('./trainHistoryDict', "rb") as file_pi:
     #   history = pickle.load(file_pi)
     
     # Test the model
@@ -63,7 +68,7 @@ def Task1():
     
     # Evaluate the model on the test data using `evaluate`
     print("Evaluate on test data")
-    results = model.evaluate(X_test, Y_test, batch_size=128)
+    results = model.evaluate([image_test, input_caption_test], target_caption_test_one_hot, batch_size=32)
     print("test loss, test acc:", results)
 
     # Generate predictions (probabilities -- the output of the last layer)
@@ -72,10 +77,14 @@ def Task1():
     out_file = io.open("./word_map.json", "r", encoding="utf-8-sig")
     word_map = json.load(out_file)
     out_file.close()
-    test_images = X_test[:3]
-    text = generate_results(model, test_images, max_length, word_map)
+    test_images = image_test[:3]
+    pred_caption = input_caption_pred[:3]
+    prediction = model.predict([test_images, pred_caption], **dict(inference=True))
+    
+    #reverse_word_map = {v["Rep"]: k for k, v in word_map.items()}
+    
     print('Images predicted:', test_images)
-    print('Predictions:', text)
+    print('Predictions:', prediction)
     
 
 # Entry point for the script
