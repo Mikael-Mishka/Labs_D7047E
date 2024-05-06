@@ -221,7 +221,6 @@ def word_embedding(max_length):
     
     # Testing
     input_caption_pred = np.array(list(map(lambda x: x[0], full_caption_test)))
-    
         
     # Creating embedding matrix for the word vectors
     emb_dim = 50
@@ -240,36 +239,5 @@ def word_embedding(max_length):
     print('Word embedding done')
 
     np.save('./emb_mat.npy', emb_mat)
-    return image_train, image_test, target_caption_train, input_caption_train, target_caption_test, input_caption_test, emb_mat
+    return image_train, image_test, target_caption_train, input_caption_train, target_caption_test, input_caption_test, input_caption_pred, emb_mat
 
-def get_word(i,word_map):
-  for key,vals in word_map.items():
-    if vals[0]==i:
-      return key
-
-def generate_results(model,image,length,word_map):
-
-  text="startseq"
-
-  for i in range(length):
-    words=text.split()
-    sequence=[]
-    for j in words:
-      sequence.append(word_map[word]['Rep'])
-    sequence=pad_sequences([sequence],max_length=length)
-
-    word_predict=model.predict([image,sequence])
-
-    word_pr=np.argmax(word_predict)
-
-    word=get_word(word_pr,word_map)
-
-    if word is None:
-      break
-    
-    text=text + ' ' + word
-
-    if word=='endseq':
-      break
-
-  return text

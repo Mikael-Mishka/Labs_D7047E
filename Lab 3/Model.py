@@ -79,8 +79,8 @@ class CustomMultiModalLayer(Layer):
                 x = Dropout(0.2)(x)
                 x = self.output_layer(x)  # softmax output
                 
-                outputs.append(x)
                 predicted_token = tf.argmax(x, axis=-1)
+                outputs.append(predicted_token)
                 
                 # Stop if the end token is predicted
                 if tf.reduce_all(predicted_token == self.end_token_idx):
