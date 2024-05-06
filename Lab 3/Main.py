@@ -1,11 +1,12 @@
-import torch
 import os
 import json
 import io
-import pickle
+import threading
+
+import dill
 
 # Set Keras backend to TensorFlow
-os.environ["KERAS_BACKEND"] = "torch"
+# 7os.environ["KERAS_BACKEND"] = "torch"
 
 import keras
 import numpy as np
@@ -13,22 +14,35 @@ from keras import backend as K  # For backend manipulation
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.model_selection import train_test_split
 from keras.utils import to_categorical
-
-from Data_preprocess import caption_preprocess, word_embedding, generate_results
+import pathlib
+from Data_preprocess import caption_preprocess, word_embedding
 from Model import multimodal_model
+import gc as garbage_man
 
 
 # Main task: Preprocess data, define model, and train
 def Task1():
     # Run data preprocessing
-    caption_preprocess()  # Extract and preprocess text and images
+    # caption_preprocess()  # Extract and preprocess text and images
     
     max_length = 35
     truncation_length = 50
     end_token_idx = 15
-    
-    image_train, image_test, target_caption_train, input_caption_train, target_caption_test, input_caption_test, input_caption_pred, emb_mat = word_embedding(max_length)  # Load preprocessed data
-    
+
+    data_tuple_path = pathlib.Path('./data_tuple.dill')
+    if data_tuple_path.exists():
+        with open(data_tuple_path, 'rb') as file:
+            image_train, image_test, target_caption_train, input_caption_train, target_caption_test, input_caption_test, input_caption_pred, emb_mat = dill.load(file)
+    else:
+        data_tuple = word_embedding(max_length)  # Load preprocessed data
+        garbage_man.collect()
+        with open(data_tuple_path, 'wb') as file:
+            dill.dump(data_tuple, file)
+
+        image_train, image_test, target_caption_train, input_caption_train, target_caption_test, input_caption_test, input_caption_pred, emb_mat = data_tuple
+        del data_tuple
+        garbage_man.collect()
+
     # Model parameters
     image_shape = (224, 224, 3)
     vocab_size, emb_dim = np.shape(emb_mat)
@@ -47,17 +61,23 @@ def Task1():
     history = model.fit(
         [image_train, input_caption_train],  # Adjust inputs to match model's expected inputs
         target_caption_train_one_hot,
-        epochs=10,  # Modify based on the requirements
+        epochs=6,  # Modify based on the requirements
         batch_size=32,
         validation_split=0.2,
-        callbacks=[early_stopping, model_checkpoint],
+        callbacks=[early_stopping],
         verbose=True
     )
     
     # Store the history
-    with open('./trainHistoryDict', 'wb') as file_pi:
-        pickle.dump(history.history, file_pi)
-        
+
+    def save_history(history):
+        with open('./trainHistoryDict', 'wb') as file_pi:
+            dill.dump(history.history, file_pi)
+
+    # Start a thread to avoid waiting for IO
+    t = threading.Thread(target=save_history, args=(history,))
+    t.start()
+
     # To retrieve the history, write these lines
     #with open('./trainHistoryDict', "rb") as file_pi:
     #   history = pickle.load(file_pi)
@@ -74,17 +94,20 @@ def Task1():
     # Generate predictions (probabilities -- the output of the last layer)
     # on new data using `predict`
     print("Generate predictions for 3 samples")
-    out_file = io.open("./word_map.json", "r", encoding="utf-8-sig")
-    word_map = json.load(out_file)
-    out_file.close()
+    # out_file = io.open("./word_map.json", "r", encoding="utf-8-sig")
+    # word_map = json.load(out_file)
+    # out_file.close()
     test_images = image_test[:3]
     pred_caption = input_caption_pred[:3]
-    prediction = model.predict([test_images, pred_caption], **dict(inference=True))
+
+    model: keras.Model
+    prediction = model.predict([test_images, pred_caption])
     
     #reverse_word_map = {v["Rep"]: k for k, v in word_map.items()}
     
     print('Images predicted:', test_images)
     print('Predictions:', prediction)
+    t.join()
     
 
 # Entry point for the script

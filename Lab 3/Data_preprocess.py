@@ -204,23 +204,67 @@ def word_embedding(max_length):
     Y_n=np.array(Y)
 
     # X_f_2=X_f/255
-
     # Reducing the dataset
-    _, X_f, _,Y_n = train_test_split(X_f, Y_n, test_size=0.063)
+    # _, X_f, _,Y_n = train_test_split(X_f, Y_n, test_size=0.063)
+    # X_f.shape (n, 224, 224, 3) -> (125, 224, 224, 3)
+    print("Reducing the dataset", end="\r")
+    X_f = X_f[:125]
+    Y_n = Y_n[:125]
+    print("Reduced the dataset\033[0K")
 
     # Splitting the data
     image_train, image_test, full_caption_train, full_caption_test = train_test_split(X_f, Y_n, test_size=0.2)
-        
-    # Targets
-    target_caption_train = np.array(list(map(lambda x: x[1:], full_caption_train)))
-    target_caption_test = np.array(list(map(lambda x: x[1:], full_caption_test)))
-    
-    # Inputs
-    input_caption_train = np.array(list(map(lambda x: x[:-1], full_caption_train)))
-    input_caption_test = np.array(list(map(lambda x: x[:-1], full_caption_train)))
-    
-    # Testing
-    input_caption_pred = np.array(list(map(lambda x: x[0], full_caption_test)))
+
+    assert len(image_train) == len(full_caption_train)
+
+    image_train_temp = []
+    input_caption_train = []
+    target_caption_train = []
+    for i, caption in enumerate(full_caption_train):
+        caption = caption.tolist()
+        for j in range(len(caption)):
+            input_caption_train.append(caption[:j] + [0] * (max_length - len(caption[:j])))
+            target_caption_train.append(caption[j])
+
+        image_train_temp.extend([image_train[i]] * (len(caption) - 1))
+
+    image_train = np.array(image_train_temp)
+    image_train_temp.clear()
+    del image_train_temp
+    input_caption_train = np.array(input_caption_train)
+    target_caption_train = np.array(target_caption_train)
+
+    image_test_temp = []
+    input_caption_test = []
+    target_caption_test = []
+    input_caption_pred = []
+    for i, caption in enumerate(full_caption_test):
+        caption = caption.tolist()
+        for j in range(len(caption)):
+            input_caption_test.append(caption[:j] + [0] * (max_length - len(caption[:j])))
+            target_caption_test.append(caption[j])
+
+        image_test_temp.extend([image_test[i]] * (len(caption) - 1))
+        input_caption_pred.append(caption[0])
+
+    image_test = np.array(image_test_temp)
+    image_test_temp.clear()
+    del image_test_temp
+    input_caption_test = np.array(input_caption_test)
+    target_caption_test = np.array(target_caption_test)
+    input_caption_pred = np.array(input_caption_pred)
+
+
+    # # Targets
+    # target_caption_train = np.array(list(map(lambda x: x[1:], full_caption_train)))
+    # target_caption_test = np.array(list(map(lambda x: x[1:], full_caption_test)))
+    #
+    # # Inputs
+    # input_caption_train = np.array(list(map(lambda x: x[:-1], full_caption_train)))
+    # input_caption_test = np.array(list(map(lambda x: x[:-1], full_caption_train)))
+    #
+    # # Testing
+    # input_caption_pred = np.array(list(map(lambda x: x[0], full_caption_test)))
         
     # Creating embedding matrix for the word vectors
     emb_dim = 50
