@@ -7,8 +7,6 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 import os
 import numpy as np
 import io
-import keras
-from keras.preprocessing.sequence import pad_sequences
 
 def image_preprocess():
     fldr1 = './Flicker8k_Dataset'

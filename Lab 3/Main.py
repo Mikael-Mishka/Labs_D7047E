@@ -2,19 +2,20 @@ import os
 import json
 import io
 import threading
+import time
 
 import dill
 
-# Set Keras backend to TensorFlow
-# 7os.environ["KERAS_BACKEND"] = "torch"
 
-import keras
 import numpy as np
-from keras import backend as K  # For backend manipulation
-from keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.model_selection import train_test_split
-from keras.utils import to_categorical
 import pathlib
+
+import torch
+from torch.utils.data import DataLoader, TensorDataset
+import torch.nn
+from torch.optim import Adam
+from torchvision.transforms import transforms
+
 from Data_preprocess import caption_preprocess, word_embedding
 from Model import multimodal_model
 import gc as garbage_man
@@ -44,72 +45,86 @@ def Task1():
         garbage_man.collect()
 
     # Model parameters
-    image_shape = (224, 224, 3)
+    image_shape = (3, 224//2, 224//2)
     vocab_size, emb_dim = np.shape(emb_mat)
     
-    target_caption_train_one_hot = to_categorical(target_caption_train, num_classes=vocab_size)
-    target_caption_test_one_hot = to_categorical(target_caption_test, num_classes=vocab_size)
-    
     # Define multimodal model
-    model = multimodal_model(image_shape, max_length, vocab_size, emb_dim, emb_mat, end_token_idx, truncation_length)
+    model = multimodal_model(max_length, vocab_size, image_shape, emb_dim, emb_mat, end_token_idx, truncation_length)
+    model.remove_softmax()
 
-    # Define callbacks for training
-    early_stopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1, mode='min')
-    model_checkpoint = ModelCheckpoint('best_model.keras', monitor='val_accuracy', save_best_only=True)
-    
-    # Train the model
-    history = model.fit(
-        [image_train, input_caption_train],  # Adjust inputs to match model's expected inputs
-        target_caption_train_one_hot,
-        epochs=6,  # Modify based on the requirements
+    training_loader = DataLoader(
+        TensorDataset(torch.tensor(image_train), torch.tensor(input_caption_train), torch.tensor(target_caption_train)),
         batch_size=32,
-        validation_split=0.2,
-        callbacks=[early_stopping],
-        verbose=True
+        shuffle=True
     )
-    
-    # Store the history
+    optimizer = Adam(model.parameters(), lr=0.001)
+    criterion = torch.nn.CrossEntropyLoss(ignore_index=0)
+    transform = transforms.Compose([
+        transforms.Resize((224//2, 224//2)),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Example normalization
+    ])
 
-    def save_history(history):
-        with open('./trainHistoryDict', 'wb') as file_pi:
-            dill.dump(history.history, file_pi)
+    from torchinfo import summary
+    print(summary(model, input_size=(32, 3, 224//2, 224//2), device='cpu'))
 
-    # Start a thread to avoid waiting for IO
-    t = threading.Thread(target=save_history, args=(history,))
-    t.start()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
+    start_time = time.time()
+    # Training loop
+    for epoch in range(100):
+        model.train()
 
-    # To retrieve the history, write these lines
-    #with open('./trainHistoryDict', "rb") as file_pi:
-    #   history = pickle.load(file_pi)
-    
-    # Test the model
-    
-    model.load_weights('best_model.keras')
-    
-    # Evaluate the model on the test data using `evaluate`
-    print("Evaluate on test data")
-    results = model.evaluate([image_test, input_caption_test], target_caption_test_one_hot, batch_size=32)
-    print("test loss, test acc:", results)
+        total = 0
+        e_loss = 0
+        correct = 0
+        for i, (image, input_caption, target_caption) in enumerate(training_loader):
+            optimizer.zero_grad()
+            # Image is W, H, C
+            image = image.permute(0, 3, 1, 2)
+            image = transform(image.float())
+            image = image.to(device)
+            input_caption = input_caption.to(device)
+            target_caption = target_caption.to(device)
+            target_caption = target_caption.view(-1)
+            total += target_caption.size(0)
 
-    # Generate predictions (probabilities -- the output of the last layer)
-    # on new data using `predict`
-    print("Generate predictions for 3 samples")
-    # out_file = io.open("./word_map.json", "r", encoding="utf-8-sig")
-    # word_map = json.load(out_file)
-    # out_file.close()
-    test_images = image_test[:3]
-    pred_caption = input_caption_pred[:3]
+            output = model(image, input_caption, 'train')
+            loss = criterion(output[:, -1, :], target_caption)
 
-    model: keras.Model
-    prediction = model.predict([test_images, pred_caption])
-    
-    #reverse_word_map = {v["Rep"]: k for k, v in word_map.items()}
-    
-    print('Images predicted:', test_images)
-    print('Predictions:', prediction)
-    t.join()
-    
+            prediction = torch.argmax(output[:, -1, :], dim=1)
+            correct += torch.sum(prediction == target_caption).item()
+            e_loss += loss.item()
 
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+            optimizer.step()
+
+            optimizer.step()
+            if time.time() - start_time > 1/2 or i == len(training_loader) - 1:
+                print(f"Epoch {epoch}, Batch {i}, Loss: {e_loss / total}, Accuracy: {correct / total}", end='\r' if i < len(training_loader) - 1 else '\n', flush=True)
+                start_time = time.time()
+
+    test_tensor = torch.tensor(image_test)
+    pred_data = DataLoader(
+        TensorDataset(test_tensor, torch.tensor([input_caption_pred]*test_tensor.size(0))),
+        batch_size=32,
+        shuffle=False
+    )
+
+    model.eval()
+
+    predictions = []
+
+    for i, (image, input_caption) in enumerate(pred_data):
+        image = image.permute(0, 3, 1, 2)
+        image = transform(image.float())
+        image = image.to(device)
+        input_caption = input_caption.to(device)
+        output = model(image, input_caption, 'infer')
+        predictions.append(output)
+
+    print(*predictions, sep='\n' * 2)
 # Entry point for the script
 def main():
     Task1()
