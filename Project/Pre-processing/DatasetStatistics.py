@@ -1,6 +1,6 @@
 # Import Libraries
 import pathlib
-
+import sys
 
 
 """
@@ -21,13 +21,17 @@ def main():
 
     abs_path = pathlib.Path(__file__).parent.absolute()
 
+    # The dataset_directory_path
     path = abs_path.parent / "Datasets"
 
+    # The dataset_directory_path assigned to path
     dataset_directory_path: pathlib.Path = path
 
-    # Creates a DatasetStatisticsManager object and provides its result to stdout.
-    ds.DatasetStatisticsManager(dataset_directory_path=dataset_directory_path, num_of_classes=3)
+    # Create the DatasetStatisticsManager object
+    dataset_stats_manager: ds.DatasetStatisticsManager = ds.DatasetStatisticsManager(dataset_directory_path=dataset_directory_path, num_of_classes=3)
 
+    # Get the result
+    print(dataset_stats_manager.result)
 
 
 main()

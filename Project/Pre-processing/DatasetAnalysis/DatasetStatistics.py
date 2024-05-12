@@ -59,8 +59,59 @@ class DatasetStatisticsManager:
         # Get smallest width and height across all datasets.
         self.smallest_width, self.smallest_height = DatasetStatisticsManager.get_smallest_width_and_height(dataset_directory_path)
 
+
+        # Get the amount of samples in the dataset
+        self.samples: tuple[int, int, int] = (len(os.listdir(dataset_directory_path / "train" / "NORMAL")) + len(os.listdir(dataset_directory_path / "train" / "PNEUMONIA")),
+                                              len(os.listdir(dataset_directory_path / "test" / "NORMAL")) + len(os.listdir(dataset_directory_path / "test" / "PNEUMONIA")),
+                                              len(os.listdir(dataset_directory_path / "val")) + len(os.listdir(dataset_directory_path / "val")))
+
+
+        # The amount of viral pneumonia images in the dataset.
+
+        # The amount of bacterial pneumonia images in the dataset.
+        self.bacterial_samples: int = (len([img_name for img_name in os.listdir(dataset_directory_path / "train" / "PNEUMONIA") if "bacteria" in img_name]) +
+                                       len([img_name for img_name in os.listdir(dataset_directory_path / "test" / "PNEUMONIA")if "bacteria" in img_name]) +
+                                       len([img_name for img_name in os.listdir(dataset_directory_path / "val" / "PNEUMONIA")if "bacteria" in img_name]))
+
+        # The amount of viral pneumonia images in the dataset.
+        self.viral_samples: int = (len([img_name for img_name in os.listdir(dataset_directory_path / "train" / "PNEUMONIA") if "virus" in img_name]) +
+                                   len([img_name for img_name in os.listdir(dataset_directory_path / "test" / "PNEUMONIA")if "virus" in img_name]) +
+                                   len([img_name for img_name in os.listdir(dataset_directory_path / "val" / "PNEUMONIA")if "virus" in img_name]))
+
+        # The amount of normal images in the dataset.
+        self.normal_samples: int = (len(os.listdir(dataset_directory_path / "train" / "NORMAL")) +
+                                    len(os.listdir(dataset_directory_path / "test" / "NORMAL")) +
+                                    len(os.listdir(dataset_directory_path / "val" / "NORMAL")))
+
+        # Normal, viral, test samples in training set
+        self.normal_samples_train: int = len(os.listdir(dataset_directory_path / "train" / "NORMAL"))
+        self.viral_samples_train: int = len([img_name for img_name in os.listdir(dataset_directory_path / "train" / "PNEUMONIA")
+                                             if "virus" in img_name])
+        self.bacterial_samples_train: int = len([img_name for img_name in os.listdir(dataset_directory_path / "train" / "PNEUMONIA")
+                                                 if "bacteria" in img_name])
+
+        # Calculates what percentage of the dataset viral, normal and bacterial is.
+        self.viral_samples_percentage: float = (self.viral_samples / sum(self.samples))
+        self.bacterial_samples_percentage: float = (self.bacterial_samples / sum(self.samples))
+        self.normal_samples_percentage: float = (self.normal_samples / sum(self.samples))
+
+
         # Print the statistics of the dataset.
-        print(f"Dataset Statistics: ",
+        """print(f"Dataset Statistics: ",
+              f"---------------------------------",
+              f"Samples: {self.samples[0] + self.samples[1] + self.samples[2]}",
+              f"Virus: {self.viral_samples}",
+              f"Bacteria: {self.bacterial_samples}",
+              f"Normal: {self.normal_samples}",
+              f"---------------------------------",
+              f"Normal samples in train: {self.normal_samples_train}",
+              f"Viral samples in train: {self.viral_samples_train}",
+              f"Bacterial samples in train: {self.bacterial_samples_train}",
+              f"---------------------------------",
+              f"Total - normal train samples: {self.normal_samples - self.normal_samples_train}",
+              f"Total - viral train samples: {self.viral_samples - self.viral_samples_train}",
+              f"Total - bacterial train samples: {self.bacterial_samples - self.bacterial_samples_train}",
+              f"---------------------------------",
               f"Number of classes       = {self.num_of_classes}",
               f"---------------------------------",
               f"Train:      Mean Width  = {self.train_mean_width}",
@@ -81,11 +132,57 @@ class DatasetStatisticsManager:
               f"Dataset:    Smallest Width: {self.smallest_width} (over all images)",
               f"Dataset:    Smallest Height: {self.smallest_height} (over all images)",
               f"---------------------------------",
-              sep="\n")
+              sep="\n")"""
+
+        self.result = "\n".join([
+              f"Dataset Statistics: ",
+              f"---------------------------------",
+              f"Viral samples percentage: {self.viral_samples_percentage}%",
+              f"Bacterial samples percentage: {self.bacterial_samples_percentage}%",
+              f"Normal samples percentage: {self.normal_samples_percentage}%",
+              f"---------------------------------",
+              f"Samples: {self.samples[0] + self.samples[1] + self.samples[2]}",
+              f"Virus: {self.viral_samples}",
+              f"Bacteria: {self.bacterial_samples}",
+              f"Normal: {self.normal_samples}",
+              f"---------------------------------",
+              f"Normal samples in train: {self.normal_samples_train}",
+              f"Viral samples in train: {self.viral_samples_train}",
+              f"Bacterial samples in train: {self.bacterial_samples_train}",
+              f"---------------------------------",
+              f"Total - normal train samples: {self.normal_samples - self.normal_samples_train}",
+              f"Total - viral train samples: {self.viral_samples - self.viral_samples_train}",
+              f"Total - bacterial train samples: {self.bacterial_samples - self.bacterial_samples_train}",
+              f"---------------------------------",
+              f"Number of classes       = {self.num_of_classes}",
+              f"---------------------------------",
+              f"Train:      Mean Width  = {self.train_mean_width}",
+              f"Train:      Mean Height = {self.train_mean_height}",
+              f"Train:      SD Width    = {self.train_SD_width}",
+              f"Train:      SD Height   = {self.train_SD_height}",
+              f"---------------------------------",
+              f"Test:       Mean Width  = {self.test_mean_width}",
+              f"Test:       Mean Height = {self.test_mean_height}",
+              f"Test:       SD Width:   = {self.test_SD_width}",
+              f"Test:       SD Height   = {self.test_SD_height}",
+              f"---------------------------------",
+              f"Validation: Mean Width  = {self.val_mean_width}",
+              f"Validation: Mean Height = {self.val_mean_height}",
+              f"Validation: SD Width    = {self.val_SD_width}",
+              f"Validation: SD Height   = {self.val_SD_height}",
+              f"---------------------------------",
+              f"Dataset:    Smallest Width: {self.smallest_width} (over all images)",
+              f"Dataset:    Smallest Height: {self.smallest_height} (over all images)",
+              f"---------------------------------"])
 
 
 
 
+
+    def get_percentages(self) -> tuple[float, float, float]:
+        return (self.viral_samples_percentage,
+                self.bacterial_samples_percentage,
+                self.normal_samples_percentage)
 
     @staticmethod
     def get_smallest_width_and_height(dataset_directory_path: Path) -> List[int]:

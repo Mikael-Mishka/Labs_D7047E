@@ -37,8 +37,7 @@ def train_augmentation(dataset_size: tuple[int, int]) -> torchvision.transforms.
     # Augmentation
     return torchvision.transforms.Compose([
         torchvision.transforms.Resize(dataset_size),
-        torchvision.transforms.Grayscale(num_output_channels=1),
-        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Grayscale(num_output_channels=1)
     ])
 
 
@@ -98,21 +97,8 @@ def transform_dataset(original_dataset_path: pathlib.Path,
                 # Apply the transform
                 transformed_img: Image = train_augmentation(new_size)(img)
 
-                if "train" in sub_directory:
-                    labels_train.append(0 if "NORMAL" in image_type_sub_dir else 1)
-                    train_images.append(transformed_img)
-
-                elif "val" in sub_directory:
-                    labels_val.append(0 if "NORMAL" in image_type_sub_dir else 1)
-                    val_images.append(transformed_img)
-
-                elif "test" in sub_directory:
-                    labels_test.append(0 if "NORMAL" in image_type_sub_dir else 1)
-                    test_images.append(transformed_img)
-
-                else:
-                    raise ValueError("Invalid sub-directory name.")
-
+                # Save the transformed image
+                transformed_img.save(transform_dir_path / sub_directory / image_type_sub_dir / image)
 
 def run() -> None:
 
