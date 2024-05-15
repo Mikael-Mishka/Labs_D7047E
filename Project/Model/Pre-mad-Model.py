@@ -23,3 +23,4 @@ class OUR_Resnet18(nn.Module):
 
 
 torch.save(OUR_Resnet18(), 'ammonia_resnet18.pth')
+#gvghh
